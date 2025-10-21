@@ -29,7 +29,8 @@ describe("AirdropManager", function () {
       tokenId,
       totalAirdropAmount,
       claimAmount,
-      expirationDate
+      expirationDate,
+      0 // AirdropType.CUSTOM
     ], { signer: admin });
     await customAirdrop.waitForDeployment();
     console.log("CustomAirdrop deployed at", await customAirdrop.getAddress());
@@ -68,7 +69,7 @@ describe("AirdropManager", function () {
     expect(airdropBalance.toString()).to.equal(ethers.parseUnits("100", 18).toString());
 
     
-    await airdropManager.claim(await customAirdrop.getAddress(), user1.address);
+    await airdropManager.claim(await customAirdrop.getAddress(), user1.address, ethers.parseUnits("1", 18), []);
 
     
     const userBalance = await myToken.balanceOf(user1.address, 1);
@@ -76,7 +77,7 @@ describe("AirdropManager", function () {
   });
 
   it("should fail to claim airdrop if user is not allowed", async function () {
-    await expect(airdropManager.claim(await customAirdrop.getAddress(), user2.address)).to.be.revertedWith("Address not allowed to claim this airdrop");
+    await expect(airdropManager.claim(await customAirdrop.getAddress(), user2.address, ethers.parseUnits("1", 18), [])).to.be.revertedWith("Address not allowed to claim this airdrop");
   });
 
   it("should fail to claim airdrop if expired", async function () {
@@ -84,6 +85,6 @@ describe("AirdropManager", function () {
     await ethers.provider.send("evm_increaseTime", [86400 + 1]); // 1 day + 1 second
     await ethers.provider.send("evm_mine", []);
 
-    await expect(airdropManager.claim(await customAirdrop.getAddress(), user1.address)).to.be.revertedWith("Airdrop already expired.");
+    await expect(airdropManager.claim(await customAirdrop.getAddress(), user1.address, ethers.parseUnits("1", 18), [])).to.be.revertedWith("Airdrop already expired.");
   });
 });
